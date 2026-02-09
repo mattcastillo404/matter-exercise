@@ -16,7 +16,6 @@ export type EditorStatus =
   | "selection"
   | "selected"
   | "editing"
-  | "complete"
   | "error";
 
 export type ChatMessage = {
@@ -37,6 +36,8 @@ export type EditorState = {
   error: string | null;
   uploadProgress: number;
   chatMessages: ChatMessage[];
+  imageVersions: string[];
+  activeVersionIndex: number;
 };
 
 // ---------- Actions ----------
@@ -52,8 +53,8 @@ export type EditorAction =
   | { type: "EDIT_COMPLETE"; editedImageUrl: string }
   | { type: "EDIT_ERROR"; error: string }
   | { type: "RETRY" }
-  | { type: "EDIT_ANOTHER" }
   | { type: "RESET" }
+  | { type: "SELECT_VERSION"; index: number }
   | { type: "ADD_CHAT_MESSAGE"; message: ChatMessage }
   | { type: "REMOVE_TAG"; tag: "image" | "selection" };
 
@@ -69,6 +70,8 @@ export const initialEditorState: EditorState = {
   error: null,
   uploadProgress: 0,
   chatMessages: [],
+  imageVersions: [],
+  activeVersionIndex: 0,
 };
 
 // ---------- Reducer ----------
@@ -98,6 +101,8 @@ export function editorReducer(
         status: "selection",
         imageDataUrl: action.imageDataUrl,
         uploadProgress: 100,
+        imageVersions: [action.imageDataUrl],
+        activeVersionIndex: 0,
       };
 
     case "SET_LASSO":
@@ -129,12 +134,20 @@ export function editorReducer(
         prompt: action.prompt,
       };
 
-    case "EDIT_COMPLETE":
+    case "EDIT_COMPLETE": {
+      const newVersions = [...state.imageVersions, action.editedImageUrl];
       return {
         ...state,
-        status: "complete",
+        status: "selection",
         editedImageUrl: action.editedImageUrl,
+        imageDataUrl: action.editedImageUrl,
+        imageVersions: newVersions,
+        activeVersionIndex: newVersions.length - 1,
+        maskDataUrl: null,
+        lassoPath: null,
+        prompt: "",
       };
+    }
 
     case "EDIT_ERROR":
       return {
@@ -150,21 +163,18 @@ export function editorReducer(
         error: null,
       };
 
-    case "EDIT_ANOTHER":
+    case "RESET":
+      return initialEditorState;
+
+    case "SELECT_VERSION":
       return {
         ...state,
         status: "selection",
+        activeVersionIndex: action.index,
+        imageDataUrl: state.imageVersions[action.index],
         maskDataUrl: null,
         lassoPath: null,
-        prompt: "",
-        editedImageUrl: null,
-        error: null,
-        // keep the edited image as the new source
-        imageDataUrl: state.editedImageUrl ?? state.imageDataUrl,
       };
-
-    case "RESET":
-      return initialEditorState;
 
     case "ADD_CHAT_MESSAGE":
       return {

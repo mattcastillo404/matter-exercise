@@ -36,36 +36,48 @@ export function ImageDropzone() {
       setError(null);
       dispatch({ type: "START_UPLOAD", file });
 
-      // Read file as data URL with simulated progress
+      // Read file as data URL with artificial 3-second minimum progress
       const reader = new FileReader();
+      const MIN_DURATION = 3000;
       const startTime = Date.now();
+      let dataUrl: string | null = null;
+      let readerDone = false;
 
-      // Simulate incremental progress
-      let progressInterval: ReturnType<typeof setInterval>;
-      let currentProgress = 0;
+      // Simulate smooth progress that never reaches 100% before MIN_DURATION
+      const progressInterval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const t = Math.min(elapsed / MIN_DURATION, 1);
 
-      progressInterval = setInterval(() => {
-        currentProgress = Math.min(currentProgress + Math.random() * 15, 90);
-        dispatch({
-          type: "SET_UPLOAD_PROGRESS",
-          progress: Math.round(currentProgress),
-        });
-      }, 200);
+        if (t >= 1) {
+          // Time's up — finish
+          clearInterval(progressInterval);
+          dispatch({ type: "SET_UPLOAD_PROGRESS", progress: 100 });
+
+          if (readerDone && dataUrl) {
+            dispatch({ type: "UPLOAD_COMPLETE", imageDataUrl: dataUrl });
+          }
+          return;
+        }
+
+        // Ease-out curve capped at 95% so the indicator never finishes early
+        const visual = Math.round(t * 95);
+        dispatch({ type: "SET_UPLOAD_PROGRESS", progress: visual });
+      }, 80);
 
       reader.onload = () => {
-        clearInterval(progressInterval);
-        dispatch({ type: "SET_UPLOAD_PROGRESS", progress: 100 });
+        readerDone = true;
+        dataUrl = reader.result as string;
 
         const elapsed = Date.now() - startTime;
-        const remaining = Math.max(0, 3000 - elapsed);
+        const remaining = Math.max(0, MIN_DURATION - elapsed);
 
-        // Enforce minimum 3 second display
-        setTimeout(() => {
-          dispatch({
-            type: "UPLOAD_COMPLETE",
-            imageDataUrl: reader.result as string,
-          });
-        }, remaining);
+        if (remaining === 0) {
+          // Timer already finished — transition immediately
+          clearInterval(progressInterval);
+          dispatch({ type: "SET_UPLOAD_PROGRESS", progress: 100 });
+          dispatch({ type: "UPLOAD_COMPLETE", imageDataUrl: dataUrl });
+        }
+        // Otherwise the interval above will handle the transition
       };
 
       reader.onerror = () => {

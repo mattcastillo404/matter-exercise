@@ -1,8 +1,10 @@
 "use client";
 
 import { motion } from "motion/react";
+import { Sparkles } from "lucide-react";
 import { useEditor } from "@/lib/editor-store";
 import { GlowEffect } from "@/components/motion-primitives/glow-effect";
+import { TextShimmerWave } from "@/components/motion-primitives/text-shimmer-wave";
 
 export function EditingOverlay() {
   const { state } = useEditor();
@@ -35,7 +37,17 @@ export function EditingOverlay() {
             />
           )}
 
-          {/* Shimmer overlay on the image */}
+          {/* Dim + shimmer overlay on the image */}
+          <motion.div
+            className="absolute inset-0 rounded-lg"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0.35) 50%, rgba(0, 0, 0, 0.45) 100%)",
+            }}
+          />
           <motion.div
             className="absolute inset-0 rounded-lg"
             initial={{ opacity: 0 }}
@@ -54,16 +66,20 @@ export function EditingOverlay() {
 
         {/* Loading indicator */}
         <motion.div
-          className="absolute inset-0 z-20 flex items-center justify-center"
+          className="absolute inset-0 z-20 flex items-center justify-center px-12 py-6 rounded-lg [--base-gradient-color:#d946ef] backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
-          <div className="flex flex-col items-center gap-3">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-fuchsia-500/30 border-t-fuchsia-500" />
-            <span className="text-sm font-medium text-fuchsia-300/80">
-              Processing...
-            </span>
+          <div className="flex items-center gap-2.5">
+            <Sparkles className="h-5 w-5 text-fuchsia-400" />
+            <TextShimmerWave
+              className="text-base font-medium [--base-color:#a1a1aa] [--base-gradient-color:#d946ef]"
+              duration={1.2}
+              spread={1}
+            >
+              Making edits...
+            </TextShimmerWave>
           </div>
         </motion.div>
       </div>

@@ -1,33 +1,44 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { Send, X } from "lucide-react";
+import { ArrowUp, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
 import { useEditor } from "@/lib/editor-store";
-import { Button } from "@/components/ui/button";
 import { submitInpaint } from "@/lib/api";
+import { TextShimmer } from "@/components/motion-primitives/text-shimmer";
 
-function RemovableTag({
+function Tag({
   label,
+  variant = "fuchsia",
   onRemove,
 }: {
   label: string;
+  variant?: "fuchsia" | "orange";
   onRemove: () => void;
 }) {
   return (
     <motion.span
+      layout
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.8 }}
       transition={{ duration: 0.2 }}
-      className="inline-flex items-center gap-1 rounded-md bg-orange-500/20 px-2 py-0.5 text-xs font-medium text-orange-400"
+      className={cn(
+        "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-medium",
+        variant === "orange"
+          ? "bg-orange-500/15 text-orange-400"
+          : "bg-fuchsia-500/15 text-fuchsia-400"
+      )}
     >
-      {label}
+      <span className="max-w-[100px] truncate">{label}</span>
       <button
         type="button"
         onClick={onRemove}
-        className="rounded-full p-0.5 transition-colors hover:bg-orange-500/30"
+        className={cn(
+          "rounded-full p-0.5 transition-colors",
+          variant === "orange" ? "hover:bg-orange-500/20" : "hover:bg-fuchsia-500/20"
+        )}
       >
         <X className="h-3 w-3" />
       </button>
@@ -38,17 +49,13 @@ function RemovableTag({
 export function ChatInput() {
   const { state, dispatch } = useEditor();
   const [input, setInput] = useState("");
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const showImageTag =
-    state.status === "selection" && state.imageDataUrl !== null;
-  const showSelectionTag = state.status === "selected";
+  const hasImage = state.imageDataUrl !== null;
+  const isSelection = state.status === "selection";
+  const isSelected = state.status === "selected";
   const isEditing = state.status === "editing";
-
-  const placeholder =
-    state.status === "empty" || state.status === "uploading"
-      ? "Generate an image"
-      : "Describe your edits";
+  const showTag = (isSelection && hasImage) || isSelected;
 
   const canSubmit =
     input.trim().length > 0 &&
@@ -59,7 +66,6 @@ export function ChatInput() {
     if (!canSubmit) return;
     const prompt = input.trim();
 
-    // Add user message to chat
     dispatch({
       type: "ADD_CHAT_MESSAGE",
       message: {
@@ -71,21 +77,9 @@ export function ChatInput() {
       },
     });
 
-    // Add assistant "thinking" message
-    dispatch({
-      type: "ADD_CHAT_MESSAGE",
-      message: {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: "Making edits...",
-        timestamp: Date.now(),
-      },
-    });
-
     dispatch({ type: "SUBMIT_EDIT", prompt });
     setInput("");
 
-    // Call the inpaint API
     try {
       const result = await submitInpaint(
         state.imageDataUrl!,
@@ -103,7 +97,10 @@ export function ChatInput() {
         },
       });
 
-      dispatch({ type: "EDIT_COMPLETE", editedImageUrl: result.editedImageUrl });
+      dispatch({
+        type: "EDIT_COMPLETE",
+        editedImageUrl: result.editedImageUrl,
+      });
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Something went wrong.";
@@ -122,8 +119,8 @@ export function ChatInput() {
     }
   }, [canSubmit, input, dispatch, state.imageDataUrl, state.maskDataUrl]);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
       e.preventDefault();
       handleSubmit();
     }
@@ -134,66 +131,61 @@ export function ChatInput() {
   };
 
   return (
-    <div className="border-t border-zinc-800 p-3">
-      {/* Tags area */}
-      <div className="mb-2 flex min-h-[24px] items-center gap-2">
-        <AnimatePresence mode="popLayout">
-          {showImageTag && (
-            <RemovableTag
-              key="image"
-              label="Image"
-              onRemove={() => handleRemoveTag("image")}
-            />
-          )}
-          {showSelectionTag && (
-            <RemovableTag
-              key="selection"
-              label="Selection"
-              onRemove={() => handleRemoveTag("selection")}
-            />
-          )}
-        </AnimatePresence>
-      </div>
+    <div className="flex w-full items-center gap-3 rounded-full border border-zinc-800 bg-zinc-950 px-2 pl-4 py-2">
+      {/* Removable tag — transitions from orange "Image" to default "Selection" */}
+      <AnimatePresence mode="popLayout">
+        {showTag && (
+          <Tag
+            key="context-tag"
+            label={isSelected ? "Selection" : "Image"}
+            variant={isSelected ? "fuchsia" : "orange"}
+            onRemove={() =>
+              handleRemoveTag(isSelected ? "selection" : "image")
+            }
+          />
+        )}
+      </AnimatePresence>
 
-      {/* Input area */}
-      <div className="relative flex items-end gap-2">
-        <textarea
-          ref={textareaRef}
+      {/* Text input with shimmer placeholder */}
+      <div className="relative min-w-0 flex-1">
+        <input
+          ref={inputRef}
+          type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder}
           disabled={isEditing}
-          rows={1}
           className={cn(
-            "flex-1 resize-none rounded-lg bg-zinc-800 px-3 py-2.5 text-sm text-zinc-200 outline-none transition-colors",
-            "placeholder:text-zinc-500",
-            "focus:ring-1 focus:ring-fuchsia-500/50",
-            "disabled:cursor-not-allowed disabled:opacity-50",
-            "max-h-32 min-h-[40px]"
+            "w-full bg-transparent text-sm text-zinc-200 outline-none",
+            "disabled:cursor-not-allowed disabled:opacity-50"
           )}
-          style={{ height: "auto", overflow: "hidden" }}
-          onInput={(e) => {
-            const target = e.target as HTMLTextAreaElement;
-            target.style.height = "auto";
-            target.style.height = `${Math.min(target.scrollHeight, 128)}px`;
-          }}
         />
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={handleSubmit}
-          disabled={!canSubmit || isEditing}
-          className={cn(
-            "h-10 w-10 flex-shrink-0 rounded-lg transition-colors",
-            canSubmit
-              ? "bg-fuchsia-600 text-white hover:bg-fuchsia-500"
-              : "text-zinc-600"
-          )}
-        >
-          <Send className="h-4 w-4" />
-        </Button>
+        {input.length === 0 && !isEditing && (
+          <div
+            className="pointer-events-none absolute inset-0 flex items-center"
+            onClick={() => inputRef.current?.focus()}
+          >
+            <TextShimmer className="text-sm" duration={3}>
+              {hasImage ? "Describe your edits..." : "Generate an image..."}
+            </TextShimmer>
+          </div>
+        )}
       </div>
+
+      {/* Send button */}
+      <button
+        type="button"
+        onClick={handleSubmit}
+        disabled={!canSubmit || isEditing}
+        className={cn(
+          "flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors",
+          canSubmit
+            ? "bg-zinc-100 text-zinc-900 hover:bg-zinc-300"
+            : "bg-zinc-800 text-zinc-600"
+        )}
+      >
+        <ArrowUp className="size-5" />
+      </button>
     </div>
   );
 }
