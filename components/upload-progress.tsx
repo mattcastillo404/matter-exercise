@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "motion/react";
-import { TextShimmerWave } from "@/components/motion-primitives/text-shimmer-wave";
 
 const CIRCLE_RADIUS = 54;
 const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS;
@@ -27,7 +26,7 @@ export function UploadProgress({ progress }: { progress: number }) {
             fill="none"
             stroke="currentColor"
             strokeWidth="6"
-            className="text-zinc-800"
+            className="text-black/10"
           />
           {/* Progress circle */}
           <motion.circle
@@ -45,19 +44,10 @@ export function UploadProgress({ progress }: { progress: number }) {
           />
         </svg>
         {/* Percentage text */}
-        <span className="absolute text-lg font-semibold text-zinc-300">
+        <span className="absolute text-lg font-semibold text-black">
           {Math.round(progress)}%
         </span>
       </div>
-
-      {/* Shimmer wave text */}
-      <TextShimmerWave
-        className="text-base font-medium [--base-color:#a1a1aa] [--base-gradient-color:#d946ef]"
-        duration={1.2}
-        spread={1}
-      >
-        Uploading image...
-      </TextShimmerWave>
     </motion.div>
   );
 }

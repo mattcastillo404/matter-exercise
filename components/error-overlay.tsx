@@ -27,15 +27,15 @@ export function ErrorOverlay() {
           transition={{ duration: 0.4 }}
           className="absolute inset-0 flex items-center justify-center"
         >
-          <div className="flex max-w-sm flex-col items-center gap-4 rounded-xl border border-red-900/50 bg-zinc-900/95 p-6 text-center shadow-2xl backdrop-blur-sm">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-900/30">
-              <AlertCircle className="h-6 w-6 text-red-400" />
+          <div className="flex max-w-sm flex-col items-center gap-4 rounded-xl border border-black/10 bg-white/95 p-6 text-center shadow-2xl backdrop-blur-sm">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-500/10">
+              <AlertCircle className="h-6 w-6 text-red-500" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-zinc-200">
+              <h3 className="text-base font-semibold text-black">
                 Something went wrong
               </h3>
-              <p className="mt-1.5 text-sm text-zinc-400">
+              <p className="mt-1.5 text-sm text-black/50">
                 {state.error || "An unexpected error occurred while editing your image."}
               </p>
             </div>
@@ -43,7 +43,7 @@ export function ErrorOverlay() {
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2 border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+                className="gap-2"
                 onClick={() => dispatch({ type: "RETRY" })}
               >
                 <RotateCcw className="h-3.5 w-3.5" />
@@ -52,7 +52,7 @@ export function ErrorOverlay() {
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2 border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+                className="gap-2"
                 onClick={() => dispatch({ type: "RESET" })}
               >
                 <ArrowLeft className="h-3.5 w-3.5" />

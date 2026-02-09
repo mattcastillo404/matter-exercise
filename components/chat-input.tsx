@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { ArrowUp, X } from "lucide-react";
+import { ArrowUp, Square, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { cn } from "@/lib/utils";
+import { cn, resizeImageToMatch } from "@/lib/utils";
 import { useEditor } from "@/lib/editor-store";
 import { submitInpaint } from "@/lib/api";
 import { TextShimmer } from "@/components/motion-primitives/text-shimmer";
@@ -27,8 +27,8 @@ function Tag({
       className={cn(
         "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-medium",
         variant === "orange"
-          ? "bg-orange-500/15 text-orange-400"
-          : "bg-fuchsia-500/15 text-fuchsia-400"
+          ? "bg-orange-500/10 text-orange-600"
+          : "bg-fuchsia-500/10 text-fuchsia-600"
       )}
     >
       <span className="max-w-[100px] truncate">{label}</span>
@@ -50,6 +50,7 @@ export function ChatInput() {
   const { state, dispatch } = useEditor();
   const [input, setInput] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const hasImage = state.imageDataUrl !== null;
   const isSelection = state.status === "selection";
@@ -61,6 +62,14 @@ export function ChatInput() {
     input.trim().length > 0 &&
     state.status === "selected" &&
     state.maskDataUrl !== null;
+
+  const handleCancel = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    dispatch({ type: "CANCEL_EDIT" });
+  }, [dispatch]);
 
   const handleSubmit = useCallback(async () => {
     if (!canSubmit) return;
@@ -78,13 +87,24 @@ export function ChatInput() {
     });
 
     dispatch({ type: "SUBMIT_EDIT", prompt });
-    setInput("");
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
       const result = await submitInpaint(
         state.imageDataUrl!,
         state.maskDataUrl!,
-        prompt
+        prompt,
+        controller.signal
+      );
+
+      // Resize the returned image to match the original dimensions —
+      // the AI model may return a different resolution (e.g. 1024x1024).
+      const originalUrl = state.imageVersions[0];
+      const resizedUrl = await resizeImageToMatch(
+        result.editedImageUrl,
+        originalUrl
       );
 
       dispatch({
@@ -99,9 +119,16 @@ export function ChatInput() {
 
       dispatch({
         type: "EDIT_COMPLETE",
-        editedImageUrl: result.editedImageUrl,
+        editedImageUrl: resizedUrl,
       });
+
+      setInput("");
     } catch (err) {
+      // Silently handle aborted requests — the user cancelled intentionally
+      if (err instanceof DOMException && err.name === "AbortError") {
+        return;
+      }
+
       const errorMessage =
         err instanceof Error ? err.message : "Something went wrong.";
 
@@ -116,8 +143,10 @@ export function ChatInput() {
       });
 
       dispatch({ type: "EDIT_ERROR", error: errorMessage });
+    } finally {
+      abortControllerRef.current = null;
     }
-  }, [canSubmit, input, dispatch, state.imageDataUrl, state.maskDataUrl]);
+  }, [canSubmit, input, dispatch, state.imageDataUrl, state.maskDataUrl, state.imageVersions]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -131,7 +160,7 @@ export function ChatInput() {
   };
 
   return (
-    <div className="flex w-full items-center gap-3 rounded-full border border-zinc-800 bg-zinc-950 px-2 pl-4 py-2">
+    <div className="flex w-full items-center gap-3 rounded-full border border-black/10 bg-white px-2 pl-4 py-2">
       {/* Removable tag — transitions from orange "Image" to default "Selection" */}
       <AnimatePresence mode="popLayout">
         {showTag && (
@@ -156,7 +185,7 @@ export function ChatInput() {
           onKeyDown={handleKeyDown}
           disabled={isEditing}
           className={cn(
-            "w-full bg-transparent text-sm text-zinc-200 outline-none",
+            "w-full bg-transparent text-sm text-black outline-none placeholder:text-black/30",
             "disabled:cursor-not-allowed disabled:opacity-50"
           )}
         />
@@ -172,20 +201,30 @@ export function ChatInput() {
         )}
       </div>
 
-      {/* Send button */}
-      <button
-        type="button"
-        onClick={handleSubmit}
-        disabled={!canSubmit || isEditing}
-        className={cn(
-          "flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors",
-          canSubmit
-            ? "bg-zinc-100 text-zinc-900 hover:bg-zinc-300"
-            : "bg-zinc-800 text-zinc-600"
-        )}
-      >
-        <ArrowUp className="size-5" />
-      </button>
+      {/* Send / Stop button */}
+      {isEditing ? (
+        <button
+          type="button"
+          onClick={handleCancel}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-black text-white transition-colors hover:bg-black/80"
+        >
+          <Square className="size-4" />
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={!canSubmit}
+          className={cn(
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors",
+            canSubmit
+              ? "bg-black text-white hover:bg-black/80"
+              : "bg-black/5 text-black/25"
+          )}
+        >
+          <ArrowUp className="size-5" />
+        </button>
+      )}
     </div>
   );
 }

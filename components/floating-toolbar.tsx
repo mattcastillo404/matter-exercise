@@ -12,7 +12,7 @@ export function FloatingToolbar({ children }: { children: ReactNode }) {
       transition={{ duration: 0.25, ease: "easeOut" }}
       className="absolute right-3 top-3 z-20"
     >
-      <div className="flex items-center gap-1 rounded-full border border-zinc-700 bg-zinc-900/90 p-1 shadow-lg backdrop-blur-sm">
+      <div className="flex items-center gap-1 rounded-full border border-black/10 bg-white/90 p-1 shadow-lg backdrop-blur-sm">
         {children}
       </div>
     </motion.div>
@@ -54,8 +54,8 @@ export function ToolbarButton({
   const className =
     "flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors " +
     (disabled
-      ? "text-zinc-600 cursor-not-allowed"
-      : "text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100");
+      ? "text-black/20 cursor-not-allowed"
+      : "text-black/70 hover:bg-black/5 hover:text-black");
 
   const handleClick = disabled
     ? undefined

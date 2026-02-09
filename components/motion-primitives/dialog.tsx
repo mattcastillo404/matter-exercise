@@ -231,8 +231,8 @@ function DialogContent({ children, className, container }: DialogContentProps) {
           transition={transition}
           onAnimationComplete={onAnimationComplete}
           className={cn(
-            'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform rounded-lg border border-zinc-200 p-0 shadow-lg dark:border dark:border-zinc-700',
-            'backdrop:bg-black/50 backdrop:backdrop-blur-xs',
+            'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform rounded-lg border border-black/10 bg-white p-0 shadow-lg',
+            'backdrop:bg-black/40 backdrop:backdrop-blur-xs',
             'open:flex open:flex-col',
             className
           )}
@@ -269,7 +269,7 @@ function DialogTitle({ children, className }: DialogTitleProps) {
   return (
     <h2
       id={context.ids.title}
-      className={cn('text-base font-medium', className)}
+      className={cn('text-base font-medium text-black', className)}
     >
       {children}
     </h2>
@@ -288,7 +288,7 @@ function DialogDescription({ children, className }: DialogDescriptionProps) {
   return (
     <p
       id={context.ids.description}
-      className={cn('text-base text-zinc-500', className)}
+      className={cn('text-sm text-black/50', className)}
     >
       {children}
     </p>

@@ -114,14 +114,19 @@ export function ImageCanvas() {
     };
     imgElement.src = state.imageDataUrl;
 
+    // Clear previous selection as soon as user starts a new draw
+    fCanvas.on("mouse:down", () => {
+      if (currentPathRef.current) {
+        fCanvas.remove(currentPathRef.current);
+        currentPathRef.current = null;
+        fCanvas.renderAll();
+        dispatch({ type: "CLEAR_LASSO" });
+      }
+    });
+
     // Handle path:created - when user finishes drawing
     fCanvas.on("path:created", (opt) => {
       const path = (opt as { path: InstanceType<typeof fabric.Path> }).path;
-
-      // Remove previous selection if any
-      if (currentPathRef.current) {
-        fCanvas.remove(currentPathRef.current);
-      }
 
       const scale = viewportScaleRef.current;
 
@@ -204,46 +209,35 @@ export function ImageCanvas() {
       transition={{ duration: 0.5, ease: "easeOut" }}
       className="relative h-full w-full cursor-crosshair p-20"
     >
-      {/* Top bar — version thumbnails or instructional text */}
-      {(state.status === "selection" || state.status === "selected") && isReady && (
+      {/* Top bar — version thumbnails */}
+      {(state.status === "selection" || state.status === "selected") && isReady && state.imageVersions.length > 1 && (
         <div className="absolute top-6 left-0 right-0 z-10 flex justify-center">
-          {state.imageVersions.length > 1 ? (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="flex items-center gap-2"
-            >
-              {state.imageVersions.map((url, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => dispatch({ type: "SELECT_VERSION", index: i })}
-                  className={cn(
-                    "h-10 w-10 overflow-hidden rounded border transition-all",
-                    i === state.activeVersionIndex
-                      ? "ring-2 ring-fuchsia-500 border-fuchsia-500"
-                      : "border-zinc-700 opacity-60 hover:opacity-100"
-                  )}
-                >
-                  <img
-                    src={url}
-                    alt={i === 0 ? "Original" : `Version ${i}`}
-                    className="h-full w-full object-cover"
-                  />
-                </button>
-              ))}
-            </motion.div>
-          ) : (
-            <motion.p
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="text-sm text-zinc-400"
-            >
-              Draw to select an area to edit
-            </motion.p>
-          )}
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="flex items-center gap-2"
+          >
+            {state.imageVersions.map((url, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => dispatch({ type: "SELECT_VERSION", index: i })}
+                className={cn(
+                  "h-10 w-10 overflow-hidden rounded border transition-all",
+                  i === state.activeVersionIndex
+                    ? "ring-2 ring-fuchsia-500 border-fuchsia-500"
+                    : "border-black/10 opacity-60 hover:opacity-100"
+                )}
+              >
+                <img
+                  src={url}
+                  alt={i === 0 ? "Original" : `Version ${i}`}
+                  className="h-full w-full object-cover"
+                />
+              </button>
+            ))}
+          </motion.div>
         </div>
       )}
 
@@ -253,7 +247,7 @@ export function ImageCanvas() {
         <canvas ref={canvasRef} />
         {!isReady && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-fuchsia-500" />
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-black/10 border-t-fuchsia-500" />
           </div>
         )}
       </div>
@@ -295,10 +289,10 @@ export function ImageCanvas() {
 
       {/* Confirmation dialog for Start over */}
       <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-        <DialogContent className="w-full max-w-sm bg-zinc-900 p-6">
+        <DialogContent className="w-full max-w-sm p-6">
           <DialogHeader className="space-y-2">
-            <DialogTitle className="text-zinc-100">Start over?</DialogTitle>
-            <DialogDescription className="text-sm text-zinc-400">
+            <DialogTitle>Start over?</DialogTitle>
+            <DialogDescription>
               Your current changes will not be saved.
             </DialogDescription>
           </DialogHeader>

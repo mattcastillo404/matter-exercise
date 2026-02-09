@@ -52,6 +52,7 @@ export type EditorAction =
   | { type: "SUBMIT_EDIT"; prompt: string }
   | { type: "EDIT_COMPLETE"; editedImageUrl: string }
   | { type: "EDIT_ERROR"; error: string }
+  | { type: "CANCEL_EDIT" }
   | { type: "RETRY" }
   | { type: "RESET" }
   | { type: "SELECT_VERSION"; index: number }
@@ -154,6 +155,12 @@ export function editorReducer(
         ...state,
         status: "error",
         error: action.error,
+      };
+
+    case "CANCEL_EDIT":
+      return {
+        ...state,
+        status: "selected",
       };
 
     case "RETRY":

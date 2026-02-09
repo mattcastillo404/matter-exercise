@@ -29,8 +29,8 @@ export function TextShimmer({
           "linear-gradient(90deg, var(--shimmer-base) 40%, var(--shimmer-highlight) 50%, var(--shimmer-base) 60%)",
         animationDuration,
         // Default colors — override via CSS custom properties or className
-        "--shimmer-base": "#71717a",
-        "--shimmer-highlight": "#a1a1aa",
+        "--shimmer-base": "#a1a1aa",
+        "--shimmer-highlight": "#000000",
       } as React.CSSProperties}
     >
       {children}
