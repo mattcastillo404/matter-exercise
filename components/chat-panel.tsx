@@ -45,9 +45,8 @@ export function ChatPanel() {
               )}
               {isUploading && (
                 <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-fuchsia-500" />
                   <TextShimmerWave
-                    className="text-sm font-medium [--base-color:#a1a1aa] [--base-gradient-color:#d946ef]"
+                    className="text-sm [--base-color:#a1a1aa] [--base-gradient-color:#d946ef]"
                     duration={1.2}
                     spread={1}
                   >
@@ -59,7 +58,7 @@ export function ChatPanel() {
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-fuchsia-500" />
                   <TextShimmerWave
-                    className="text-sm font-medium [--base-color:#a1a1aa] [--base-gradient-color:#d946ef]"
+                    className="text-sm [--base-color:#a1a1aa] [--base-gradient-color:#d946ef]"
                     duration={1.2}
                     spread={1}
                   >

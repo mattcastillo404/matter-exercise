@@ -37,7 +37,7 @@ export function UploadProgress({ progress }: { progress: number }) {
             stroke="currentColor"
             strokeWidth="6"
             strokeLinecap="round"
-            className="text-fuchsia-500"
+            className="text-black"
             strokeDasharray={CIRCLE_CIRCUMFERENCE}
             animate={{ strokeDashoffset: offset }}
             transition={{ duration: 0.3, ease: "easeOut" }}

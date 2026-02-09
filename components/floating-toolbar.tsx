@@ -54,8 +54,8 @@ export function ToolbarButton({
   const className =
     "flex items-center gap-2 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors " +
     (disabled
-      ? "text-black/20 cursor-not-allowed"
-      : "text-black/70 hover:bg-black/5 hover:text-black");
+      ? "text-black/40 cursor-not-allowed"
+      : "text-black hover:bg-black/5");
 
   const handleClick = disabled
     ? undefined

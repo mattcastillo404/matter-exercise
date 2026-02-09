@@ -158,9 +158,9 @@ export function ImageDropzone() {
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm"
           >
-            <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed border-fuchsia-500 bg-fuchsia-500/10 p-16">
-              <Upload className="h-12 w-12 text-fuchsia-500" />
-              <p className="text-lg font-medium text-fuchsia-600">
+            <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-dashed border-black bg-black/5 p-16">
+              <Upload className="h-12 w-12 text-black" />
+              <p className="text-lg font-medium text-black">
                 Drop your image here
               </p>
             </div>
@@ -181,11 +181,11 @@ export function ImageDropzone() {
           className={cn(
             "group flex w-full max-w-xl cursor-pointer flex-col items-center gap-4 rounded-2xl border-2 border-dashed p-16 transition-all duration-200",
             "border-black/15 hover:border-black/30 hover:bg-black/2",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 focus-visible:ring-offset-white"
           )}
         >
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-black/5 transition-colors group-hover:bg-black/10">
-            <ImageIcon className="h-8 w-8 text-black/40 transition-colors group-hover:text-black/60" />
+            <ImageIcon className="h-8 w-8 text-black transition-colors" />
           </div>
           <div className="text-center">
             <p className="text-base font-medium text-black">

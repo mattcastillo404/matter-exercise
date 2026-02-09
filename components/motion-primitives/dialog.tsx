@@ -4,7 +4,6 @@ import React, { createContext, useContext, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { useId } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
 import { usePreventScroll } from '@/hooks/usePreventScroll';
 
 const DialogContext = createContext<{
@@ -19,7 +18,6 @@ const DialogContext = createContext<{
     description: string;
   };
   onAnimationComplete: (definition: string) => void;
-  handleTrigger: () => void;
 } | null>(null);
 
 const defaultVariants: Variants = {
@@ -105,10 +103,6 @@ function Dialog({
     }
   }, [isOpen]);
 
-  const handleTrigger = () => {
-    setIsOpen(true);
-  };
-
   const onAnimationComplete = (definition: string) => {
     if (definition === 'exit' && !isOpen) {
       dialogRef.current?.close();
@@ -132,35 +126,10 @@ function Dialog({
         transition,
         ids,
         onAnimationComplete,
-        handleTrigger,
       }}
     >
       {children}
     </DialogContext.Provider>
-  );
-}
-
-export type DialogTriggerProps = {
-  children: React.ReactNode;
-  className?: string;
-};
-
-function DialogTrigger({ children, className }: DialogTriggerProps) {
-  const context = useContext(DialogContext);
-  if (!context) throw new Error('DialogTrigger must be used within Dialog');
-
-  return (
-    <button
-      onClick={context.handleTrigger}
-      className={cn(
-        'inline-flex items-center justify-center rounded-md text-sm font-medium',
-        'transition-colors focus-visible:ring-2 focus-visible:outline-hidden',
-        'focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-        className
-      )}
-    >
-      {children}
-    </button>
   );
 }
 
@@ -295,41 +264,10 @@ function DialogDescription({ children, className }: DialogDescriptionProps) {
   );
 }
 
-export type DialogCloseProps = {
-  className?: string;
-  children?: React.ReactNode;
-  disabled?: boolean;
-};
-
-function DialogClose({ className, children, disabled }: DialogCloseProps) {
-  const context = useContext(DialogContext);
-  if (!context) throw new Error('DialogClose must be used within Dialog');
-
-  return (
-    <button
-      onClick={() => context.setIsOpen(false)}
-      type='button'
-      aria-label='Close dialog'
-      className={cn(
-        'absolute top-4 right-4 rounded-xs opacity-70 transition-opacity',
-        'hover:opacity-100 focus:ring-2 focus:outline-hidden',
-        'focus:ring-zinc-500 focus:ring-offset-2 disabled:pointer-events-none',
-        className
-      )}
-      disabled={disabled}
-    >
-      {children || <X className='h-4 w-4' />}
-      <span className='sr-only'>Close</span>
-    </button>
-  );
-}
-
 export {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogClose,
 };

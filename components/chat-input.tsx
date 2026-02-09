@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { cn, resizeImageToMatch } from "@/lib/utils";
 import { useEditor } from "@/lib/editor-store";
 import { submitInpaint } from "@/lib/api";
-import { TextShimmer } from "@/components/motion-primitives/text-shimmer";
+
 
 function Tag({
   label,
@@ -175,8 +175,8 @@ export function ChatInput() {
         )}
       </AnimatePresence>
 
-      {/* Text input with shimmer placeholder */}
-      <div className="relative min-w-0 flex-1">
+      {/* Text input */}
+      <div className="min-w-0 flex-1">
         <input
           ref={inputRef}
           type="text"
@@ -184,21 +184,12 @@ export function ChatInput() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={isEditing}
+          placeholder={hasImage ? "Describe your edits..." : "Generate an image..."}
           className={cn(
             "w-full bg-transparent text-sm text-black outline-none placeholder:text-black/30",
             "disabled:cursor-not-allowed disabled:opacity-50"
           )}
         />
-        {input.length === 0 && !isEditing && (
-          <div
-            className="pointer-events-none absolute inset-0 flex items-center"
-            onClick={() => inputRef.current?.focus()}
-          >
-            <TextShimmer className="text-sm" duration={3}>
-              {hasImage ? "Describe your edits..." : "Generate an image..."}
-            </TextShimmer>
-          </div>
-        )}
       </div>
 
       {/* Send / Stop button */}
